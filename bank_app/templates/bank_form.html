@@ -1,0 +1,516 @@
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            width: 80%;
+            max-width: 900px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ddd;
+        }
+        
+        /* Header */
+        h2 {
+            font-weight: bold;
+            text-align: center;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        
+        /* Labels */
+        label {
+            font-weight: bold;
+            color: #0033cc;
+            font-size: 14px;
+        }
+        
+        /* Form Fields */
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        
+        /* Dropdown */
+        select {
+            appearance: none;
+            background: url('https://cdn-icons-png.flaticon.com/512/60/60995.png') no-repeat right;
+            background-size: 15px;
+            padding-right: 25px;
+        }
+        
+        /* Buttons */
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .btn-custom {
+            min-width: 100px;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-custom:hover {
+            opacity: 0.9;
+        }
+        
+        /* Button Colors */
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-dark { background-color: #343a40; color: white; }
+        .btn-light { background-color: #f8f9fa; border: 1px solid #ccc; color: black; }
+        
+        /* Navigation Buttons */
+        .nav-btn {
+            min-width: 80px;
+            padding: 6px 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            color: #000;
+        }
+        
+        .nav-btn:hover {
+            background-color: #d6d6d6;
+        }
+        
+        /* Textarea */
+        textarea {
+            width: 100%;
+            height: 80px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Banks</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="bank_code" class="form-label">Bank Code:</label>
+                    <input type="text" name="bank_code" id="bank_code" class="form-control" value="{{ form.bank_code.value|default:'' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="bank_name" class="form-label">Bank Name:</label>
+                    {{ form.bank_name }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="swift_ifsc_code" class="form-label">Swift/IFSC Code:</label>
+                    {{ form.swift_ifsc_code }}
+                </div>
+                <div class="col-md-6">
+                    <label for="state" class="form-label">State:</label>
+                    {{ form.state }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="country" class="form-label">Country:</label>
+                    {{ form.country }}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="remarks" class="form-label">Remarks:</label>
+                {{ form.remarks }}
+            </div>
+            <div class="button-group">
+                {% if is_add_mode %}
+                    <button type="submit" class="btn btn-primary btn-custom">Save</button>
+                    <a href="{% url 'bank_list' %}" class="btn btn-secondary btn-custom">Cancel</a>
+                {% elif is_edit_mode %}
+                    <button type="submit" class="btn btn-success btn-custom">Save</button>
+                    <a href="{% url 'bank_list' %}" class="btn btn-secondary btn-custom">Cancel</a>
+                {% else %}
+                    <a href="{% url 'bank_create' %}" class="btn btn-primary btn-custom">Add</a>
+                    <a href="{% url 'bank_edit' bank_id=bank_id %}" class="btn btn-info btn-custom">Edit</a>
+                    <a href="{% url 'bank_delete' bank_id=bank_id %}" class="btn btn-danger btn-custom">Delete</a>
+                    {% endif %}
+                    <br><br><br>
+                    <a href="{% url 'navigate' 'first' %}?index=0" class="btn btn-light">First</a>
+                <a href="{% url 'navigate' 'prev' %}?index={{ index|add:'-1' }}" class="btn btn-light">Previous</a>
+                <a href="{% url 'navigate' 'next' %}?index={{ index|add:'1' }}" class="btn btn-light">Next</a>
+                <a href="{% url 'navigate' 'last' %}?index={{ total_banks|add:'-1' }}" class="btn btn-light">Last</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html> {% endcomment %}
+
+{% comment %} <a href="/" class="btn btn-dark btn-custom">Exit</a> {% endcomment %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banks Form</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            border: 2px solid black;
+            box-shadow: 2px 2px 10px gray;
+            background: white;
+            border-radius: 10px;
+        }
+        h2 {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            color: blue;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-custom {
+            min-width: 100px;
+            font-weight: bold;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            width: 80%;
+            max-width: 900px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ddd;
+        }
+        
+        /* Header */
+        h2 {
+            font-weight: bold;
+            text-align: center;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        
+        /* Labels */
+        label {
+            font-weight: bold;
+            color: #0033cc;
+            font-size: 14px;
+        }
+        
+        /* Form Fields */
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        
+        /* Dropdown */
+        select {
+            appearance: none;
+            background: url('https://cdn-icons-png.flaticon.com/512/60/60995.png') no-repeat right;
+            background-size: 15px;
+            padding-right: 25px;
+        }
+        
+        /* Buttons */
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .btn-custom {
+            min-width: 100px;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-custom:hover {
+            opacity: 0.9;
+        }
+        
+        /* Button Colors */
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-info { background-color: #17a2b8; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-dark { background-color: #343a40; color: white; }
+        .btn-light { background-color: #f8f9fa; border: 1px solid #ccc; color: black; }
+        
+        /* Navigation Buttons */
+        .nav-btn {
+            min-width: 80px;
+            padding: 6px 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            color: #000;
+        }
+        
+        .nav-btn:hover {
+            background-color: #d6d6d6;
+        }
+        
+        /* Textarea */
+        textarea {
+            width: 100%;
+            height: 80px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Banks</h2>
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+        
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="bank_code" class="form-label">Bank Code:</label>
+                    <input type="text" name="bank_code" id="bank_code" class="form-control" list="bank_codes" 
+                        value="{{ form.bank_code.value|default:'' }}" required autocomplete="off">
+                    <datalist id="bank_codes">
+                        {% for bank in banks %}
+                            <option value="{{ bank.bank_code }}" data-name="{{ bank.bank_name }}">{{ bank.bank_name }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <div class="invalid-feedback">Bank code is required.</div>
+                </div>
+            
+                <div class="col-md-6">
+                    <label for="bank_name" class="form-label">Bank Name:</label>
+                    <input type="text" name="bank_name" id="bank_name" class="form-control"
+                        value="{{ form.bank_name.value|default:'' }}" required>
+                    <div class="invalid-feedback">Bank Name is required.</div>
+                </div>
+            </div>
+            
+        
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="swift_ifsc_code" class="form-label">Swift/IFSC Code:</label>
+                    {{ form.swift_ifsc_code }}
+                </div>
+                <div class="col-md-6">
+                    <label for="state" class="form-label">State:</label>
+                    <input type="text" name="state" id="state" class="form-control"
+                        value="{{ form.state.value|default:'' }}" required>
+                    <div class="invalid-feedback">State is required.</div>
+                </div>
+            </div>
+        
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="country" class="form-label">Country:</label>
+                    <input type="text" name="country" id="country" class="form-control" list="country-list"
+                        value="{{ form.country.value|default:'' }}" required>
+                    <datalist id="country-list">
+                        {% for country in countries %}
+                            <option value="{{ country.name }}">{{ country.name }}</option>
+                        {% endfor %}
+                    </datalist>
+                    <div class="invalid-feedback">Please select a valid country.</div>
+                </div>
+            </div>
+        
+            <div class="mb-3">
+                <label for="remarks" class="form-label">Remarks:</label>
+                {{ form.remarks }}
+            </div>
+        
+            <div class="button-group">
+                {% if is_add_mode %}
+                    <button type="submit" class="btn btn-primary btn-custom">Save</button>
+                    <a href="{% url 'bank_list' %}" class="btn btn-secondary btn-custom">Cancel</a>
+                {% elif is_edit_mode %}
+                    <button type="submit" class="btn btn-success btn-custom">Save</button>
+                    <a href="{% url 'bank_list' %}" class="btn btn-secondary btn-custom">Cancel</a>
+                {% else %}
+                    <a href="{% url 'bank_create' %}" class="btn btn-primary btn-custom">Add</a>
+                    <a href="{% url 'bank_edit' bank_id=bank_id %}" class="btn btn-info btn-custom">Edit</a>
+                    <a href="{% url 'bank_delete' bank_id=bank_id %}" class="btn btn-danger btn-custom delete-btn">Delete</a>
+
+                {% endif %}
+                <br><br>
+                <a href="{% url 'navigate' 'first' %}?index=0" class="btn btn-light">First</a>
+                <a href="{% url 'navigate' 'prev' %}?index={{ index|add:'-1' }}" class="btn btn-light">Previous</a>
+                <a href="{% url 'navigate' 'next' %}?index={{ index|add:'1' }}" class="btn btn-light">Next</a>
+                <a href="{% url 'navigate' 'last' %}?index={{ total_banks|add:'-1' }}" class="btn btn-light">Last</a>
+            </div>
+        </form>
+        
+    </div>
+
+    <script>
+        // Bootstrap validation
+        (function () {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+
+        // Auto-fill Bank Name when selecting Bank Code
+        document.getElementById("bank_code").addEventListener("input", function () {
+            var selectedBank = this.value;
+            var bankOptions = document.querySelectorAll("#bank_codes option");
+            var bankNameField = document.getElementById("bank_name");
+
+            bankOptions.forEach(function (option) {
+                if (option.value === selectedBank) {
+                    bankNameField.value = option.textContent;
+                }
+            });
+        });
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            let deleteBtns = document.querySelectorAll(".delete-btn");  // Select all delete buttons
+        
+            deleteBtns.forEach(function(deleteBtn) {
+                deleteBtn.addEventListener("click", function(event) {
+                    event.preventDefault();  // Stop the link action immediately
+        
+                    let confirmDelete = confirm("Are you sure you want to delete this bank?");
+                    if (confirmDelete) {
+                        window.location.href = this.href;  // Redirect only if confirmed
+                    }
+                });
+            });
+        });
+        
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        document.addEventListener("DOMContentLoaded", function () {
+            // Auto-fill Bank Name when selecting a Bank Code
+            document.getElementById("bank_code").addEventListener("input", function () {
+                var selectedBank = this.value;
+                var bankOptions = document.querySelectorAll("#bank_codes option");
+                var bankNameField = document.getElementById("bank_name");
+        
+                bankNameField.value = ""; // Reset Bank Name if no match is found
+        
+                bankOptions.forEach(function (option) {
+                    if (option.value === selectedBank) {
+                        bankNameField.value = option.textContent;  // Auto-fill Bank Name
+                    }
+                });
+            });
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var bankCodeInput = document.getElementById("bank_code");
+            var bankNameInput = document.getElementById("bank_name");
+            var bankList = document.getElementById("bank_codes").options;
+        
+            bankCodeInput.addEventListener("input", function () {
+                let enteredValue = this.value.trim();
+                let found = false;
+        
+                // Loop through the datalist options
+                for (let option of bankList) {
+                    if (option.value === enteredValue) {
+                        bankNameInput.value = option.getAttribute("data-name"); // Auto-fill Bank Name
+                        found = true;
+                        break;
+                    }
+                }
+        
+                if (!found) {
+                    bankNameInput.value = ""; // Clear if no match
+                }
+            });
+        
+            // Ensure dropdown opens when clicking
+            bankCodeInput.addEventListener("focus", function () {
+                this.setAttribute("list", "bank_codes");
+            });
+        
+            bankCodeInput.addEventListener("blur", function () {
+                setTimeout(() => this.removeAttribute("list"), 200);
+            });
+        });
+    
+        
+       
+        </script>
+        
+</body>
+</html>
